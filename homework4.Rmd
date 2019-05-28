@@ -196,6 +196,7 @@ df_validCommitsSubsample
 
 ```{r ans113}
 # validCounts
+library(dplyr)
 validCounts <-n_distinct(df_validCommitsSubsample$commitDate)
 validCounts
 ```
