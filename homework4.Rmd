@@ -74,18 +74,36 @@ oneCommitRecord
 
 ```{r ans102}
 # df_commit
+df_commit <- data.frame(author=c(oneCommitRecord$commit$author$name),
+                        commiter=c(oneCommitRecord$commit$committer$name),
+                        commitDate=c(oneCommitRecord$commit$committer$date),
+                        sha =c(oneCommitRecord$sha),
+                        stringsAsFactors = FALSE)
+class(df_commit)
+df_commit
 ```
 
 ### 1.3 寫成函數
 請創造一個答案函數物件叫commit_df_fun, 其input為oneCommitRecord, output為df_commit。最後一行請寫commit_df_fun, 不要加`()`
 ```{r ans103}
 # commit_df_fun
+commit_df_fun <- function(oneCommitRecord){
+  df_commit <- data.frame(author=c(oneCommitRecord$commit$author$name),
+                        commiter=c(oneCommitRecord$commit$committer$name),
+                        commitDate=c(oneCommitRecord$commit$committer$date),
+                        sha =c(oneCommitRecord$sha),
+                        stringsAsFactors = FALSE)
+  return(df_commit)
+}
+commit_df_fun
 ```
 
 ### 1.4 產生完整data frame
 使用作業3的2.4小題所提及的purrr套件之`map_dfr()`函數，將commitHistory的所有30筆資料轉成與1.2小題df_commit一樣欄位名稱但有30筆資料的data fram答案物件df_allCommits, 最後一行請寫df_allCommits
 ```{r ans104}
 # df_allCommits
+df_allCommits <- map_dfr(commitHistory,commit_df_fun)
+df_allCommits
 ```
 
 ### 1.5 留下個人完成的commit
@@ -93,6 +111,8 @@ oneCommitRecord
 
 ```{r ans105}
 # df_allCommits$samePerson
+df_allCommits$samePerson <- (df_allCommits$author == df_allCommits$commiter)
+df_allCommits$samePerson
 ```
 
 ### 1.6 子樣本
@@ -100,18 +120,30 @@ oneCommitRecord
 
 ```{r ans106}
 # df_validCommits
+df_validCommits <- data.frame(author=c(df_allCommits$author[df_allCommits$samePerson]),
+commiter=(df_allCommits$commiter[df_allCommits$samePerson]),
+commitDate=(df_allCommits$commitDate[df_allCommits$samePerson]),
+sha=(df_allCommits$sha[df_allCommits$samePerson]),
+stringsAsFactors = FALSE)
+df_validCommits
 ```
 
 ### 1.7 日期
 df_validCommits中的commitDate為UTC時區表示的時間"字串"，請將它轉成以"Asia/Taipei"時區顯示的POSIXct class資料，最後一行請打答案物件df_validCommits$commitDate。
 ```{r ans107}
 # df_validCommits$commitDate
+df_validCommits$commitDate <- ymd_hms(df_validCommits$commitDate)
+df_validCommits$commitDate <- with_tz(df_validCommits$commitDate,tzone = "Asia/Taipei")
+df_validCommits$commitDate
 ```
 
 ### 1.8 hh變數
 請由`df_validCommits$commitDate`中取出台灣時區的小時數（0-23間）存在`df_validCommits$hh`中，其class為integer，最後一行請打df_validCommits$hh。
 ```{r ans108}
 # df_validCommits$hh
+df_validCommits$hh <- str_sub(hour(df_validCommits$commitDate))
+as.integer(df_validCommits$hh)
+df_validCommits$hh
 ```
 
 ### 1.9 date變數
@@ -119,6 +151,10 @@ df_validCommits中的commitDate為UTC時區表示的時間"字串"，請將它�
 
 ```{r ans109}
 # df_validCommits$date
+df_validCommits$date <- str_sub(df_validCommits$commitDate,1,10)
+df_validCommits$date <- ymd(df_validCommits$date)
+class(df_validCommits$date)
+df_validCommits$date
 ```
 
 ### 1.10 weekday變數
@@ -126,12 +162,18 @@ df_validCommits中的commitDate為UTC時區表示的時間"字串"，請將它�
 
 ```{r ans110}
 # df_validCommits$weekday
+lubridate::wday(df_validCommits$date) -> weekA
+as.integer(weekA)
+df_validCommits$weekday <- weekA
+df_validCommits$weekday
 ```
 
 ### 1.11 星期一到三且12-23
 在df_validCommits裡創立一個新的validCommit欄位，class為logical，其值為TRUE若commitDate落在星期一到三，小時在12到23間（含起迄）；最後一行請打df_validCommits$validCommit。
 ```{r ans111}
 # df_validCommits$validCommit
+df_validCommits$validCommit <- ((df_validCommits$commitDate ==1|2|3)& (df_validCommits$hh ==1223))
+df_validCommits$validCommit
 ```
 
 ### 1.12 取出合格條件子樣本
